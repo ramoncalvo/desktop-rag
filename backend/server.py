@@ -10,6 +10,7 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from fastapi import FastAPI, HTTPException, UploadFile, File
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import FileResponse
 from pydantic import BaseModel
 
 from core import database, rag, pdf_processor, video_processor
@@ -207,6 +208,29 @@ def delete_file(file_id: str):
 
 
 # --- Document viewer ---
+
+@app.get("/api/files/{file_id}/raw")
+def get_file_raw(file_id: str):
+    """Serve the original file (PDF, etc.) for embedding in the viewer."""
+    file_info = database.get_indexed_file(file_id)
+    if not file_info:
+        raise HTTPException(404, "Archivo no encontrado")
+
+    file_path = file_info["file_path"]
+    if not os.path.exists(file_path):
+        raise HTTPException(404, "Archivo no encontrado en disco")
+
+    media_types = {
+        "pdf": "application/pdf",
+    }
+    media_type = media_types.get(file_info["file_type"], "application/octet-stream")
+
+    return FileResponse(
+        file_path,
+        media_type=media_type,
+        filename=file_info["file_name"],
+    )
+
 
 @app.get("/api/files/{file_id}/content")
 def get_file_content(file_id: str, page: int | None = None):
