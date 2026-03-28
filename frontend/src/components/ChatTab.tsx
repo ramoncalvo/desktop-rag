@@ -47,7 +47,6 @@ export default function ChatTab({ sessionId, onSessionCreated, onTitleChanged }:
       onSessionCreated(sid);
     }
 
-    // Optimistic user message
     setMessages((prev) => [
       ...prev,
       { id: "temp", session_id: sid!, role: "user", content: text, sources: null, actions: null, created_at: "" },
@@ -81,11 +80,7 @@ export default function ChatTab({ sessionId, onSessionCreated, onTitleChanged }:
 
   function parseSources(raw: string | null): Source[] {
     if (!raw) return [];
-    try {
-      return JSON.parse(raw);
-    } catch {
-      return [];
-    }
+    try { return JSON.parse(raw); } catch { return []; }
   }
 
   function renderSources(sources: Source[]) {
@@ -112,9 +107,9 @@ export default function ChatTab({ sessionId, onSessionCreated, onTitleChanged }:
     if (!tags.length) return null;
 
     return (
-      <div className="mt-3 pt-3 border-t border-[#333] flex flex-wrap gap-1.5">
+      <div className="mt-3 pt-3 border-t border-[#1e2a36] flex flex-wrap gap-1.5">
         {tags.map((t) => (
-          <span key={t.key} className="text-[11px] bg-[#242424] text-gray-400 px-2 py-0.5 rounded">
+          <span key={t.key} className="text-[11px] bg-[#c8ff00]/10 text-[#c8ff00]/70 px-2 py-0.5 rounded font-medium">
             {t.label}
           </span>
         ))}
@@ -127,8 +122,11 @@ export default function ChatTab({ sessionId, onSessionCreated, onTitleChanged }:
       {/* Messages */}
       <div className="flex-1 overflow-y-auto px-6 py-4 space-y-4">
         {messages.length === 0 && !sending && (
-          <div className="flex items-center justify-center h-full text-gray-600 text-sm">
-            Escribe una pregunta para empezar
+          <div className="flex flex-col items-center justify-center h-full gap-3">
+            <div className="w-12 h-12 bg-[#c8ff00]/10 rounded-xl flex items-center justify-center">
+              <span className="text-[#c8ff00] text-lg font-bold">R</span>
+            </div>
+            <p className="text-gray-600 text-sm">Escribe una pregunta para empezar</p>
           </div>
         )}
 
@@ -140,8 +138,8 @@ export default function ChatTab({ sessionId, onSessionCreated, onTitleChanged }:
             <div
               className={`px-4 py-3 text-sm leading-relaxed ${
                 msg.role === "user"
-                  ? "bg-blue-500 text-white rounded-2xl rounded-br-sm"
-                  : "bg-[#1a1a1a] border border-[#333] text-gray-200 rounded-2xl rounded-bl-sm"
+                  ? "bg-[#c8ff00] text-[#0d1117] rounded-2xl rounded-br-sm font-medium"
+                  : "bg-[#151b23] border border-[#1e2a36] text-gray-200 rounded-2xl rounded-bl-sm"
               }`}
             >
               <div className="whitespace-pre-wrap">{msg.content}</div>
@@ -151,8 +149,13 @@ export default function ChatTab({ sessionId, onSessionCreated, onTitleChanged }:
         ))}
 
         {sending && (
-          <div className="mr-auto text-gray-500 text-sm italic py-2">
-            Pensando...
+          <div className="mr-auto flex items-center gap-2 py-2">
+            <div className="flex gap-1">
+              <div className="w-1.5 h-1.5 bg-[#c8ff00] rounded-full animate-bounce" style={{ animationDelay: "0ms" }} />
+              <div className="w-1.5 h-1.5 bg-[#c8ff00] rounded-full animate-bounce" style={{ animationDelay: "150ms" }} />
+              <div className="w-1.5 h-1.5 bg-[#c8ff00] rounded-full animate-bounce" style={{ animationDelay: "300ms" }} />
+            </div>
+            <span className="text-gray-500 text-sm">Pensando...</span>
           </div>
         )}
 
@@ -160,7 +163,7 @@ export default function ChatTab({ sessionId, onSessionCreated, onTitleChanged }:
       </div>
 
       {/* Input */}
-      <div className="px-6 py-3 border-t border-[#333] bg-[#1a1a1a] flex gap-3 shrink-0">
+      <div className="px-6 py-4 border-t border-[#1e2a36] bg-[#0a0e14] flex gap-3 shrink-0">
         <textarea
           ref={textareaRef}
           value={input}
@@ -168,19 +171,19 @@ export default function ChatTab({ sessionId, onSessionCreated, onTitleChanged }:
           onKeyDown={handleKeyDown}
           placeholder="Escribe tu pregunta..."
           rows={3}
-          className="flex-1 bg-[#242424] text-gray-200 border border-[#333] rounded-xl px-4 py-3 text-sm resize-none focus:outline-none focus:border-blue-500 transition placeholder:text-gray-600"
+          className="flex-1 bg-[#151b23] text-gray-200 border border-[#1e2a36] rounded-xl px-4 py-3 text-sm resize-none focus:outline-none focus:border-[#c8ff00]/40 transition placeholder:text-gray-600"
         />
         <div className="flex flex-col gap-2">
           <button
             onClick={handleSend}
             disabled={sending || !input.trim()}
-            className="bg-blue-500 hover:bg-blue-400 text-white px-5 py-2 rounded-lg text-sm font-medium transition disabled:opacity-40 disabled:cursor-not-allowed"
+            className="bg-[#c8ff00] hover:bg-[#d4ff33] text-[#0d1117] px-5 py-2 rounded-lg text-sm font-semibold transition disabled:opacity-30 disabled:cursor-not-allowed"
           >
             Enviar
           </button>
           <button
             disabled={!sending}
-            className="bg-[#242424] hover:bg-[#333] text-gray-400 px-5 py-2 rounded-lg text-sm border border-[#333] transition disabled:opacity-30"
+            className="bg-[#151b23] hover:bg-[#1e2a36] text-gray-500 px-5 py-2 rounded-lg text-sm border border-[#1e2a36] transition disabled:opacity-30"
           >
             Cancelar
           </button>

@@ -1,5 +1,42 @@
 @import "tailwindcss";
 
+@font-face {
+  font-family: 'Inter';
+  font-style: normal;
+  font-weight: 100 900;
+  font-display: swap;
+  src: url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+}
+
 ::-webkit-scrollbar { width: 6px; }
 ::-webkit-scrollbar-track { background: transparent; }
-::-webkit-scrollbar-thumb { background: #444; border-radius: 3px; }
+::-webkit-scrollbar-thumb { background: #2a3a4a; border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: #3a4a5a; }
+
+/* Halftone dot pattern */
+.halftone {
+  background-image: radial-gradient(circle, rgba(200, 255, 0, 0.08) 1px, transparent 1px);
+  background-size: 8px 8px;
+}
+
+.halftone-dense {
+  background-image: radial-gradient(circle, rgba(200, 255, 0, 0.12) 1.2px, transparent 1.2px);
+  background-size: 6px 6px;
+}
+
+/* Glow effect for accent elements */
+.glow-lime {
+  box-shadow: 0 0 20px rgba(200, 255, 0, 0.15), 0 0 60px rgba(200, 255, 0, 0.05);
+}
+
+/* Animated gradient sweep */
+@keyframes sweep {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+.sweep-loading {
+  background: linear-gradient(90deg, transparent, rgba(200, 255, 0, 0.3), transparent);
+  background-size: 200% 100%;
+  animation: sweep 1.5s ease-in-out infinite;
+}

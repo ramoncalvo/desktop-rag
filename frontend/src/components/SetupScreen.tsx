@@ -61,47 +61,66 @@ export default function SetupScreen({ onReady }: { onReady: (model: string) => v
   }
 
   return (
-    <div className="flex items-center justify-center h-screen bg-[#0f0f0f]">
-      <div className="bg-[#1a1a1a] border border-[#333] rounded-2xl p-10 w-[480px] text-center">
-        <h1 className="text-3xl font-bold text-white mb-1">RAG App</h1>
-        <p className="text-gray-500 mb-6">Configuracion inicial</p>
+    <div className="flex items-center justify-center h-screen bg-[#0d1117] halftone relative overflow-hidden">
+      {/* Decorative halftone wave - top right */}
+      <div className="absolute top-0 right-0 w-96 h-96 bg-gradient-to-bl from-[#c8ff00]/10 to-transparent rounded-full blur-3xl" />
+      <div className="absolute bottom-0 left-0 w-64 h-64 bg-gradient-to-tr from-[#c8ff00]/5 to-transparent rounded-full blur-3xl" />
 
-        <p className="text-sm text-gray-300 mb-3">{status}</p>
+      <div className="relative z-10 w-[520px]">
+        {/* Logo card */}
+        <div className="bg-[#c8ff00] rounded-2xl px-8 py-6 mb-6 text-center">
+          <h1 className="text-4xl font-bold text-[#0d1117] tracking-tight">
+            rag-app<span className="text-[#0d1117]/40 text-sm align-super ml-1">®</span>
+          </h1>
+          <p className="text-[#0d1117]/60 text-sm mt-1">Solutions.</p>
+        </div>
 
-        {/* Progress bar */}
-        <div className="w-full h-1 bg-[#242424] rounded-full mb-4 overflow-hidden">
-          {(loading || working) && (
-            <div className="h-full w-1/3 bg-blue-500 rounded-full animate-[slide_1.2s_ease-in-out_infinite]" />
+        {/* Setup card */}
+        <div className="bg-[#151b23] border border-[#2a3a4a] rounded-2xl p-8">
+          <p className="text-sm text-gray-300 mb-4 text-center">{status}</p>
+
+          {/* Progress bar */}
+          <div className="w-full h-1 bg-[#1e2a36] rounded-full mb-6 overflow-hidden">
+            {(loading || working) && (
+              <div className="h-full w-full sweep-loading rounded-full" />
+            )}
+            {!loading && !working && (
+              <div className="h-full bg-[#c8ff00] rounded-full transition-all duration-500" style={{ width: "100%" }} />
+            )}
+          </div>
+
+          {/* Model select */}
+          <div className="flex items-center justify-center gap-4 mb-6">
+            <label className="text-gray-500 text-sm">Modelo:</label>
+            <select
+              value={model}
+              onChange={(e) => setModel(e.target.value)}
+              disabled={working}
+              className="bg-[#1e2a36] text-gray-200 border border-[#2a3a4a] rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:border-[#c8ff00]/50 transition disabled:opacity-40"
+            >
+              {MODELS.map((m) => (
+                <option key={m} value={m}>{m}</option>
+              ))}
+            </select>
+          </div>
+
+          {/* Button */}
+          <div className="flex justify-center">
+            <button
+              onClick={handleStart}
+              disabled={loading || working}
+              className="bg-[#c8ff00] hover:bg-[#d4ff33] text-[#0d1117] px-8 py-2.5 rounded-lg text-sm font-semibold transition disabled:opacity-40 disabled:cursor-not-allowed glow-lime"
+            >
+              {working ? "Preparando..." : "Iniciar"}
+            </button>
+          </div>
+
+          {detail && (
+            <p className="text-xs text-gray-500 mt-5 text-center">{detail}</p>
           )}
         </div>
 
-        {/* Model select */}
-        <div className="flex items-center justify-center gap-3 mb-5">
-          <label className="text-gray-400 text-sm">Modelo:</label>
-          <select
-            value={model}
-            onChange={(e) => setModel(e.target.value)}
-            disabled={working}
-            className="bg-[#242424] text-gray-200 border border-[#333] rounded-lg px-3 py-2 text-sm disabled:opacity-40"
-          >
-            {MODELS.map((m) => (
-              <option key={m} value={m}>{m}</option>
-            ))}
-          </select>
-        </div>
-
-        {/* Button */}
-        <button
-          onClick={handleStart}
-          disabled={loading || working}
-          className="bg-blue-500 hover:bg-blue-400 text-white px-6 py-2 rounded-lg text-sm font-medium transition disabled:opacity-40 disabled:cursor-not-allowed"
-        >
-          {working ? "Preparando..." : "Iniciar"}
-        </button>
-
-        {detail && (
-          <p className="text-xs text-gray-500 mt-4">{detail}</p>
-        )}
+        <p className="text-center text-[10px] text-gray-600 mt-4">©2025 rag-app</p>
       </div>
     </div>
   );
