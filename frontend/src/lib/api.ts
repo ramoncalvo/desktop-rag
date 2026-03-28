@@ -135,7 +135,7 @@ export const api = {
   files: {
     list: () => request<IndexedFile[]>("/files"),
     index: (folder_path: string) =>
-      request<IndexResult>("/index", {
+      request<IndexResult>("/files", {
         method: "POST",
         body: JSON.stringify({ folder_path }),
       }),
