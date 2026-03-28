@@ -225,10 +225,15 @@ def get_file_raw(file_id: str):
     }
     media_type = media_types.get(file_info["file_type"], "application/octet-stream")
 
-    return FileResponse(
-        file_path,
+    from starlette.responses import Response
+
+    with open(file_path, "rb") as f:
+        content = f.read()
+
+    return Response(
+        content=content,
         media_type=media_type,
-        filename=file_info["file_name"],
+        headers={"Content-Disposition": "inline"},
     )
 
 
