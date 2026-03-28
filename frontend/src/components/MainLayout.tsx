@@ -48,20 +48,20 @@ export default function MainLayout({ model }: { model: string }) {
         onSelect={handleSelectSession} onNew={handleNewChat} onDelete={handleDeleteSession} />
 
       <div className="flex-1 flex flex-col overflow-hidden">
-        <nav className="flex shrink-0" style={{ borderBottom: "1px solid var(--border)", background: "var(--bg)" }}>
+        <nav className="flex shrink-0" style={{ borderBottom: "1px solid var(--navbar-border)", background: "var(--navbar-bg)" }}>
           {tabs.map((t) => (
             <button key={t.key} onClick={() => setTab(t.key)}
               className="flex items-center gap-2 px-5 py-3 text-sm font-medium border-b-2 transition"
               style={{
-                color: tab === t.key ? "var(--accent)" : "var(--text-muted)",
-                borderBottomColor: tab === t.key ? "var(--accent)" : "transparent",
+                color: tab === t.key ? "var(--accent-text)" : "var(--sidebar-text-muted)",
+                borderBottomColor: tab === t.key ? "var(--accent-text)" : "transparent",
               }}>
               {t.icon} {t.label}
             </button>
           ))}
         </nav>
 
-        <div className="flex-1 overflow-hidden halftone">
+        <div className="flex-1 overflow-hidden halftone" style={{ background: "var(--chat-bg)" }}>
           {tab === "chat" && <ChatTab sessionId={currentSessionId}
             onSessionCreated={(id) => { setCurrentSessionId(id); loadSessions(); }}
             onTitleChanged={loadSessions} onOpenDocument={handleOpenDocument} />}
@@ -72,7 +72,7 @@ export default function MainLayout({ model }: { model: string }) {
         </div>
 
         <footer className="px-4 py-1.5 text-[11px] shrink-0 flex items-center gap-2"
-          style={{ color: "var(--text-muted)", background: "var(--bg-secondary)", borderTop: "1px solid var(--border)" }}>
+          style={{ color: "var(--sidebar-text-muted)", background: "var(--statusbar-bg)", borderTop: "1px solid var(--navbar-border)" }}>
           <div className="w-1.5 h-1.5 rounded-full" style={{ background: "var(--accent)" }} />
           <span>Modelo: {model}</span>
           <span className="ml-auto">v1.0.0</span>

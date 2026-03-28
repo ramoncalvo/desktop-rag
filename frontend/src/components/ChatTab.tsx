@@ -117,11 +117,11 @@ export default function ChatTab({ sessionId, onSessionCreated, onTitleChanged, o
         <div ref={messagesEnd} />
       </div>
 
-      <div className="px-6 py-4 flex gap-3 shrink-0" style={{ borderTop: "1px solid var(--border)", background: "var(--bg-secondary)" }}>
+      <div className="px-6 py-4 flex gap-3 shrink-0" style={{ borderTop: "1px solid var(--navbar-border)", background: "var(--chat-input-bg)" }}>
         <textarea ref={textareaRef} value={input} onChange={(e) => setInput(e.target.value)} onKeyDown={handleKeyDown}
           placeholder="Escribe tu pregunta..." rows={3}
-          className="flex-1 rounded-xl px-4 py-3 text-sm resize-none focus:outline-none transition"
-          style={{ background: "var(--bg-tertiary)", color: "var(--text)", border: "1px solid var(--border)" }} />
+          className="flex-1 rounded-xl px-4 py-3 text-sm resize-none focus:outline-none transition placeholder:opacity-50"
+          style={{ background: "var(--accent-subtle)", color: "var(--sidebar-text)", border: "1px solid var(--sidebar-border)" }} />
         <div className="flex flex-col gap-2">
           <button onClick={handleSend} disabled={sending || !input.trim()}
             className="px-5 py-2 rounded-lg text-sm font-semibold transition disabled:opacity-30 disabled:cursor-not-allowed"
