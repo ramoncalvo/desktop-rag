@@ -16,8 +16,14 @@ export default function IndexerTab() {
   async function loadFolder() { try { const s = await api.settings.get("index_folder"); if (s.value) setFolder(s.value); } catch {} }
 
   async function handleBrowse() {
-    try { const { open } = await import("@tauri-apps/plugin-dialog"); const s = await open({ directory: true }); if (s) setFolder(s as string); }
-    catch { const p = prompt("Ruta de la carpeta:"); if (p) setFolder(p); }
+    // Try Tauri dialog first (native OS dialog)
+    try {
+      const { open } = await import("@tauri-apps/plugin-dialog");
+      const selected = await open({ directory: true });
+      if (selected) { setFolder(selected as string); return; }
+    } catch {
+      // In browser mode, the input is editable — user can type/paste the path
+    }
   }
 
   async function handleIndex() {
@@ -40,7 +46,7 @@ export default function IndexerTab() {
           Carpeta de documentos
         </h3>
         <div className="flex gap-2 mb-3">
-          <input type="text" value={folder} readOnly placeholder="Selecciona una carpeta..."
+          <input type="text" value={folder} onChange={(e) => setFolder(e.target.value)} placeholder="Pega la ruta de la carpeta..."
             className="flex-1 rounded-lg px-3 py-2 text-sm focus:outline-none"
             style={{ background: "var(--bg)", color: "var(--text)", border: "1px solid var(--border)" }} />
           <button onClick={handleBrowse}
