@@ -8,9 +8,10 @@ import sys
 # Add parent dir to path so core/ is importable
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from fastapi import FastAPI, HTTPException, UploadFile, File
+from fastapi import FastAPI, HTTPException, Request, UploadFile, File
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse
+from starlette.responses import Response, StreamingResponse
 from pydantic import BaseModel
 
 from core import database, rag, pdf_processor, video_processor
@@ -210,8 +211,8 @@ def delete_file(file_id: str):
 # --- Document viewer ---
 
 @app.get("/api/files/{file_id}/raw")
-def get_file_raw(file_id: str):
-    """Serve the original file (PDF, etc.) for embedding in the viewer."""
+def get_file_raw(file_id: str, request: Request):
+    """Serve the original file with range request support for video streaming."""
     file_info = database.get_indexed_file(file_id)
     if not file_info:
         raise HTTPException(404, "Archivo no encontrado")
@@ -222,18 +223,58 @@ def get_file_raw(file_id: str):
 
     media_types = {
         "pdf": "application/pdf",
+        "mp4": "video/mp4",
+        "mkv": "video/x-matroska",
+        "avi": "video/x-msvideo",
+        "mov": "video/quicktime",
+        "webm": "video/webm",
+        "mp3": "audio/mpeg",
+        "wav": "audio/wav",
+        "m4a": "audio/mp4",
+        "ogg": "audio/ogg",
+        "flac": "audio/flac",
     }
     media_type = media_types.get(file_info["file_type"], "application/octet-stream")
+    file_size = os.path.getsize(file_path)
 
-    from starlette.responses import Response
+    # Range request support for video/audio seeking
+    range_header = request.headers.get("range")
+    if range_header:
+        range_spec = range_header.replace("bytes=", "")
+        range_start_str, range_end_str = range_spec.split("-")
+        range_start = int(range_start_str)
+        range_end = int(range_end_str) if range_end_str else file_size - 1
+        chunk_size = range_end - range_start + 1
 
+        def iter_file():
+            with open(file_path, "rb") as f:
+                f.seek(range_start)
+                yield f.read(chunk_size)
+
+        return StreamingResponse(
+            iter_file(),
+            status_code=206,
+            media_type=media_type,
+            headers={
+                "Content-Range": f"bytes {range_start}-{range_end}/{file_size}",
+                "Accept-Ranges": "bytes",
+                "Content-Length": str(chunk_size),
+                "Content-Disposition": "inline",
+            },
+        )
+
+    # Full file response
     with open(file_path, "rb") as f:
         content = f.read()
 
     return Response(
         content=content,
         media_type=media_type,
-        headers={"Content-Disposition": "inline"},
+        headers={
+            "Content-Disposition": "inline",
+            "Accept-Ranges": "bytes",
+            "Content-Length": str(file_size),
+        },
     )
 
 

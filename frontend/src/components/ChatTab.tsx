@@ -8,7 +8,7 @@ interface Props {
   sessionId: string | null;
   onSessionCreated: (id: string) => void;
   onTitleChanged: () => void;
-  onOpenDocument?: (fileId: string, page?: number) => void;
+  onOpenDocument?: (fileId: string, page?: number, startTimeSec?: number) => void;
 }
 
 export default function ChatTab({ sessionId, onSessionCreated, onTitleChanged, onOpenDocument }: Props) {
@@ -53,12 +53,14 @@ export default function ChatTab({ sessionId, onSessionCreated, onTitleChanged, o
 
   function renderSources(sources: Source[]) {
     const seen = new Set<string>();
-    const tags: { label: string; key: string; fileId: string; page?: number }[] = [];
+    const tags: { label: string; key: string; fileId: string; page?: number; startSec?: number }[] = [];
     sources.forEach((src) => {
       if (seen.has(src.file_id)) return; seen.add(src.file_id);
       if (src.source_type === "video") {
         const ts = sources.filter((s) => s.file_id === src.file_id).map((s) => s.start_ts || `${s.start_min}min`);
-        tags.push({ label: `${src.title} (${ts.join(", ")})`, key: src.file_id, fileId: src.file_id });
+        const firstSrc = sources.find((s) => s.file_id === src.file_id);
+        const startSec = firstSrc?.start_min ? firstSrc.start_min * 60 : 0;
+        tags.push({ label: `${src.title} (${ts.join(", ")})`, key: src.file_id, fileId: src.file_id, startSec });
       } else if (src.source_type === "pdf") {
         const pages = [...new Set(sources.filter((s) => s.file_id === src.file_id).map((s) => s.page))].sort();
         tags.push({ label: `${src.title} p.${pages.join(", ")}`, key: src.file_id, fileId: src.file_id, page: pages[0] });
@@ -70,7 +72,7 @@ export default function ChatTab({ sessionId, onSessionCreated, onTitleChanged, o
     return (
       <div className="mt-3 pt-3 flex flex-wrap gap-1.5" style={{ borderTop: "1px solid var(--assistant-msg-border)" }}>
         {tags.map((t) => (
-          <button key={t.key} onClick={() => onOpenDocument?.(t.fileId, t.page)}
+          <button key={t.key} onClick={() => onOpenDocument?.(t.fileId, t.page, t.startSec)}
             className="text-[11px] px-2.5 py-1 rounded-md font-medium transition cursor-pointer hover:opacity-80"
             style={{ background: "var(--tag-bg)", color: "var(--tag-text)", border: "1px solid var(--tag-border)" }}>
             {t.label}

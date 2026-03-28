@@ -18,6 +18,7 @@ export default function MainLayout({ model }: { model: string }) {
   const [tab, setTab] = useState<Tab>("chat");
   const [viewerFileId, setViewerFileId] = useState<string | null>(null);
   const [viewerPage, setViewerPage] = useState<number | undefined>(undefined);
+  const [viewerStartTime, setViewerStartTime] = useState<number | undefined>(undefined);
 
   useEffect(() => { loadSessions(); }, []);
 
@@ -30,8 +31,8 @@ export default function MainLayout({ model }: { model: string }) {
     if (currentSessionId === id) setCurrentSessionId(null);
     loadSessions();
   }
-  function handleOpenDocument(fileId: string, page?: number) {
-    setViewerFileId(fileId); setViewerPage(page); setTab("viewer");
+  function handleOpenDocument(fileId: string, page?: number, startTimeSec?: number) {
+    setViewerFileId(fileId); setViewerPage(page); setViewerStartTime(startTimeSec); setTab("viewer");
   }
 
   const tabs: { key: Tab; label: string; icon: React.ReactNode }[] = [
@@ -53,8 +54,8 @@ export default function MainLayout({ model }: { model: string }) {
             <button key={t.key} onClick={() => setTab(t.key)}
               className="flex items-center gap-2 px-5 py-3 text-sm font-medium border-b-2 transition"
               style={{
-                color: tab === t.key ? "var(--accent-text)" : "var(--sidebar-text-muted)",
-                borderBottomColor: tab === t.key ? "var(--accent-text)" : "transparent",
+                color: tab === t.key ? "var(--navbar-active)" : "var(--navbar-inactive)",
+                borderBottomColor: tab === t.key ? "var(--navbar-active)" : "transparent",
               }}>
               {t.icon} {t.label}
             </button>
@@ -65,7 +66,7 @@ export default function MainLayout({ model }: { model: string }) {
           {tab === "chat" && <ChatTab sessionId={currentSessionId}
             onSessionCreated={(id) => { setCurrentSessionId(id); loadSessions(); }}
             onTitleChanged={loadSessions} onOpenDocument={handleOpenDocument} />}
-          {tab === "viewer" && <DocumentViewer fileId={viewerFileId} page={viewerPage} />}
+          {tab === "viewer" && <DocumentViewer fileId={viewerFileId} page={viewerPage} startTime={viewerStartTime} />}
           {tab === "indexer" && <IndexerTab />}
           {tab === "settings" && <SettingsTab />}
           {tab === "credits" && <CreditsTab />}

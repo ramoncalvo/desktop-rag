@@ -3,15 +3,19 @@
 import { useEffect, useState } from "react";
 import { api } from "../lib/api";
 import type { IndexedFile, TextContent } from "../lib/api";
+import VideoPlayer from "./VideoPlayer";
 
 const API = "http://127.0.0.1:5555/api";
 
+const VIDEO_TYPES = new Set(["mp4", "mkv", "avi", "mov", "webm", "mp3", "wav", "m4a", "ogg", "flac"]);
+
 interface Props {
   fileId: string | null;
+  startTime?: number; // seconds for video seek
   page?: number;
 }
 
-export default function DocumentViewer({ fileId, page: initialPage }: Props) {
+export default function DocumentViewer({ fileId, page: initialPage, startTime }: Props) {
   const [files, setFiles] = useState<IndexedFile[]>([]);
   const [selectedFileId, setSelectedFileId] = useState<string | null>(fileId);
   const [loading, setLoading] = useState(false);
@@ -81,19 +85,25 @@ export default function DocumentViewer({ fileId, page: initialPage }: Props) {
           </object>
         )}
 
-        {selectedFileId && fileType !== "pdf" && !loading && textContent && (
+        {/* Video player with synced transcript */}
+        {selectedFileId && VIDEO_TYPES.has(fileType) && !loading && textContent && (
+          <VideoPlayer
+            fileId={selectedFileId}
+            title={title}
+            segments={textContent.segments}
+            startTime={startTime}
+          />
+        )}
+
+        {/* Non-video, non-pdf text content (fallback) */}
+        {selectedFileId && fileType !== "pdf" && !VIDEO_TYPES.has(fileType) && !loading && textContent && (
           <div className="overflow-y-auto h-full p-6">
             <div className="max-w-3xl mx-auto rounded-xl p-6" style={{ background: "var(--bg-secondary)", border: "1px solid var(--border)" }}>
-              <div className="flex items-center justify-between mb-4">
-                <h3 className="text-xs uppercase tracking-wider font-medium" style={{ color: "var(--text-muted)" }}>{textContent.title}</h3>
-                <span className="text-[11px] px-2 py-0.5 rounded font-medium" style={{ background: "var(--accent-subtle)", color: "var(--accent)" }}>{textContent.file_type.toUpperCase()}</span>
-              </div>
               <div className="space-y-4">
                 {textContent.segments.map((seg, i) => (
                   <div key={i} className="pl-4 transition" style={{ borderLeft: "2px solid var(--border)" }}>
                     <div className="flex items-center gap-2 mb-1">
                       <span className="text-[11px] px-2 py-0.5 rounded font-mono" style={{ background: "var(--bg-tertiary)", color: "var(--accent)" }}>{seg.start_ts}</span>
-                      <span className="text-[11px]" style={{ color: "var(--text-muted)" }}>→ {seg.end_ts}</span>
                     </div>
                     <p className="text-sm leading-relaxed" style={{ color: "var(--text)" }}>{seg.text}</p>
                   </div>

@@ -1,11 +1,11 @@
 ## Done
 
 - [x] add text file navigation viewer (PDF pages + video transcript with timestamps)
+- [x] add video navigation player (video + synced transcript + seek from chat)
+- [x] light mode (beige + purple palette, Zustand theme store)
 
 ## Features
 
-- [ ] add video navigation player
-- [ ] currently we have dark mode, so we need light mode
 - [ ] add profile dropdown and options
   - profile > the user can update his password
   - billing > the user can pay the subscription

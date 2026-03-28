@@ -35,6 +35,8 @@
   --sidebar-border: #1e2a36;
   --navbar-bg: #0d1117;
   --navbar-border: #1e2a36;
+  --navbar-active: #c8ff00;
+  --navbar-inactive: #6b7280;
   --chat-bg: #0d1117;
   --chat-input-bg: #151b23;
   --statusbar-bg: #0a0e14;
@@ -86,6 +88,8 @@
   --sidebar-border: rgba(255, 255, 255, 0.12);
   --navbar-bg: #5c5a8a;
   --navbar-border: rgba(255, 255, 255, 0.10);
+  --navbar-active: #ffffff;
+  --navbar-inactive: rgba(255, 255, 255, 0.50);
   --chat-bg: #f0e8d8;
   --chat-input-bg: #4a4878;
   --statusbar-bg: #3e3c68;
