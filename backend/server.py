@@ -206,6 +206,87 @@ def delete_file(file_id: str):
     return {"ok": True}
 
 
+# --- Document viewer ---
+
+@app.get("/api/files/{file_id}/content")
+def get_file_content(file_id: str, page: int | None = None):
+    """Return document content for the viewer. PDFs return pages with text, others return raw text."""
+    file_info = database.get_indexed_file(file_id)
+    if not file_info:
+        raise HTTPException(404, "Archivo no encontrado")
+
+    file_path = file_info["file_path"]
+    if not os.path.exists(file_path):
+        raise HTTPException(404, "Archivo no encontrado en disco")
+
+    if file_info["file_type"] == "pdf":
+        import fitz
+        doc = fitz.open(file_path)
+        total_pages = len(doc)
+
+        if page is not None:
+            # Return single page
+            if page < 1 or page > total_pages:
+                doc.close()
+                raise HTTPException(400, f"Pagina fuera de rango (1-{total_pages})")
+            p = doc[page - 1]
+            blocks = p.get_text("blocks")
+            text_blocks = []
+            for b in blocks:
+                if b[6] == 0 and b[4].strip():
+                    text_blocks.append({
+                        "text": b[4].strip(),
+                        "y": round(b[1], 1),
+                        "x": round(b[0], 1),
+                    })
+            doc.close()
+            return {
+                "file_id": file_id,
+                "title": file_info["title"],
+                "file_type": "pdf",
+                "total_pages": total_pages,
+                "page": page,
+                "blocks": text_blocks,
+            }
+        else:
+            # Return all pages summary
+            pages = []
+            for i in range(total_pages):
+                p = doc[i]
+                text = p.get_text().strip()
+                preview = text[:200] if text else ""
+                pages.append({"page": i + 1, "preview": preview, "char_count": len(text)})
+            doc.close()
+            return {
+                "file_id": file_id,
+                "title": file_info["title"],
+                "file_type": "pdf",
+                "total_pages": total_pages,
+                "pages": pages,
+            }
+    else:
+        # For non-PDF (video transcripts), return the indexed chunks as text
+        collection = rag.get_collection()
+        results = collection.get(where={"file_id": file_id}, include=["documents", "metadatas"])
+        segments = []
+        if results and results["documents"]:
+            for doc_text, meta in sorted(
+                zip(results["documents"], results["metadatas"]),
+                key=lambda x: x[1].get("start_sec", x[1].get("start_min", 0)),
+            ):
+                segments.append({
+                    "text": doc_text,
+                    "start_ts": meta.get("start_ts", f"{meta.get('start_min', 0)}min"),
+                    "end_ts": meta.get("end_ts", f"{meta.get('end_min', 0)}min"),
+                })
+        return {
+            "file_id": file_id,
+            "title": file_info["title"],
+            "file_type": file_info["file_type"],
+            "segments": segments,
+        }
+
+
 # --- Settings ---
 
 @app.get("/api/settings/{key}")

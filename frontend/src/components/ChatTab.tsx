@@ -8,9 +8,10 @@ interface Props {
   sessionId: string | null;
   onSessionCreated: (id: string) => void;
   onTitleChanged: () => void;
+  onOpenDocument?: (fileId: string, page?: number) => void;
 }
 
-export default function ChatTab({ sessionId, onSessionCreated, onTitleChanged }: Props) {
+export default function ChatTab({ sessionId, onSessionCreated, onTitleChanged, onOpenDocument }: Props) {
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
   const [sending, setSending] = useState(false);
@@ -85,7 +86,7 @@ export default function ChatTab({ sessionId, onSessionCreated, onTitleChanged }:
 
   function renderSources(sources: Source[]) {
     const seen = new Set<string>();
-    const tags: { label: string; key: string }[] = [];
+    const tags: { label: string; key: string; fileId: string; page?: number }[] = [];
 
     sources.forEach((src) => {
       if (seen.has(src.file_id)) return;
@@ -95,12 +96,13 @@ export default function ChatTab({ sessionId, onSessionCreated, onTitleChanged }:
         const timestamps = sources
           .filter((s) => s.file_id === src.file_id)
           .map((s) => s.start_ts || `${s.start_min}min`);
-        tags.push({ label: `${src.title} (${timestamps.join(", ")})`, key: src.file_id });
+        tags.push({ label: `${src.title} (${timestamps.join(", ")})`, key: src.file_id, fileId: src.file_id });
       } else if (src.source_type === "pdf") {
         const pages = [...new Set(sources.filter((s) => s.file_id === src.file_id).map((s) => s.page))].sort();
-        tags.push({ label: `${src.title} p.${pages.join(", ")}`, key: src.file_id });
+        const firstPage = pages[0];
+        tags.push({ label: `${src.title} p.${pages.join(", ")}`, key: src.file_id, fileId: src.file_id, page: firstPage });
       } else {
-        tags.push({ label: src.title, key: src.file_id });
+        tags.push({ label: src.title, key: src.file_id, fileId: src.file_id });
       }
     });
 
@@ -109,9 +111,13 @@ export default function ChatTab({ sessionId, onSessionCreated, onTitleChanged }:
     return (
       <div className="mt-3 pt-3 border-t border-[#1e2a36] flex flex-wrap gap-1.5">
         {tags.map((t) => (
-          <span key={t.key} className="text-[11px] bg-[#c8ff00]/10 text-[#c8ff00]/70 px-2 py-0.5 rounded font-medium">
+          <button
+            key={t.key}
+            onClick={() => onOpenDocument?.(t.fileId, t.page)}
+            className="text-[11px] bg-[#c8ff00]/10 text-[#c8ff00]/70 px-2 py-0.5 rounded font-medium hover:bg-[#c8ff00]/20 hover:text-[#c8ff00] transition cursor-pointer"
+          >
             {t.label}
-          </span>
+          </button>
         ))}
       </div>
     );

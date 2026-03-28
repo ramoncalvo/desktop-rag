@@ -71,6 +71,30 @@ export interface IndexResult {
   files: { file_id: string; title: string; type: string; chunks: number }[];
 }
 
+export interface PdfPageContent {
+  file_id: string;
+  title: string;
+  file_type: "pdf";
+  total_pages: number;
+  page: number;
+  blocks: { text: string; y: number; x: number }[];
+}
+
+export interface PdfOverview {
+  file_id: string;
+  title: string;
+  file_type: "pdf";
+  total_pages: number;
+  pages: { page: number; preview: string; char_count: number }[];
+}
+
+export interface TextContent {
+  file_id: string;
+  title: string;
+  file_type: string;
+  segments: { text: string; start_ts: string; end_ts: string }[];
+}
+
 // --- API ---
 
 export const api = {
@@ -117,6 +141,10 @@ export const api = {
       }),
     delete: (id: string) =>
       request<{ ok: boolean }>(`/files/${id}`, { method: "DELETE" }),
+    content: (id: string, page?: number) =>
+      request<PdfPageContent | PdfOverview | TextContent>(
+        `/files/${id}/content${page ? `?page=${page}` : ""}`
+      ),
   },
 
   settings: {
