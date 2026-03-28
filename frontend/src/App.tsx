@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { api } from "./lib/api";
+import { useThemeStore } from "./store/theme";
 import LoginScreen from "./components/LoginScreen";
 import SetupScreen from "./components/SetupScreen";
 import MainLayout from "./components/MainLayout";
@@ -11,13 +12,13 @@ type Screen = "loading" | "login" | "setup" | "main";
 export default function App() {
   const [screen, setScreen] = useState<Screen>("loading");
   const [model, setModel] = useState("");
+  const theme = useThemeStore((s) => s.theme);
 
   useEffect(() => {
     init();
   }, []);
 
   async function init() {
-    // Wait for backend
     for (let i = 0; i < 30; i++) {
       try {
         await api.health();
@@ -27,14 +28,12 @@ export default function App() {
       }
     }
 
-    // Check if logged in (for now, check localStorage)
     const loggedIn = localStorage.getItem("rag-app-logged-in");
     if (!loggedIn) {
       setScreen("login");
       return;
     }
 
-    // Check Ollama
     try {
       const status = await api.ollama.status();
       if (
@@ -53,7 +52,6 @@ export default function App() {
 
   function handleLogin() {
     localStorage.setItem("rag-app-logged-in", "true");
-    // Check Ollama status next
     setScreen("loading");
     init();
   }
@@ -63,26 +61,21 @@ export default function App() {
     setScreen("main");
   }
 
-  if (screen === "loading") {
-    return (
-      <div className="flex items-center justify-center h-screen bg-[#0d1117]">
-        <div className="flex flex-col items-center gap-3">
-          <div className="w-10 h-10 bg-[#c8ff00] rounded-lg flex items-center justify-center">
-            <span className="text-[#0d1117] text-sm font-bold">R</span>
+  return (
+    <div className={`theme-${theme}`}>
+      {screen === "loading" && (
+        <div className="flex items-center justify-center h-screen" style={{ background: "var(--bg)" }}>
+          <div className="flex flex-col items-center gap-3">
+            <div className="w-10 h-10 rounded-lg flex items-center justify-center" style={{ background: "var(--accent)" }}>
+              <span className="text-sm font-bold" style={{ color: "var(--accent-text)" }}>R</span>
+            </div>
+            <p className="text-sm" style={{ color: "var(--text-muted)" }}>Conectando...</p>
           </div>
-          <p className="text-gray-500 text-sm">Conectando...</p>
         </div>
-      </div>
-    );
-  }
-
-  if (screen === "login") {
-    return <LoginScreen onLogin={handleLogin} />;
-  }
-
-  if (screen === "setup") {
-    return <SetupScreen onReady={handleSetupReady} />;
-  }
-
-  return <MainLayout model={model} />;
+      )}
+      {screen === "login" && <LoginScreen onLogin={handleLogin} />}
+      {screen === "setup" && <SetupScreen onReady={handleSetupReady} />}
+      {screen === "main" && <MainLayout model={model} />}
+    </div>
+  );
 }

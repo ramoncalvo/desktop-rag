@@ -1,6 +1,7 @@
 // RAG App — https://github.com/ramoncalvo
 
 import type { Session } from "../lib/api";
+import ThemeToggle from "./ThemeToggle";
 
 interface Props {
   sessions: Session[];
@@ -12,24 +13,24 @@ interface Props {
 
 export default function Sidebar({ sessions, currentSessionId, onSelect, onNew, onDelete }: Props) {
   return (
-    <aside className="w-64 bg-[#0d1117] border-r border-[#1e2a36] flex flex-col shrink-0">
+    <aside className="w-64 flex flex-col shrink-0" style={{ background: "var(--bg)", borderRight: "1px solid var(--border)" }}>
       {/* Brand header */}
-      <div className="px-5 py-4 border-b border-[#1e2a36]">
+      <div className="px-5 py-4 flex items-center justify-between" style={{ borderBottom: "1px solid var(--border)" }}>
         <div className="flex items-center gap-2">
-          <div className="w-7 h-7 bg-[#c8ff00] rounded-md flex items-center justify-center">
-            <span className="text-[#0d1117] text-xs font-bold">R</span>
+          <div className="w-7 h-7 rounded-md flex items-center justify-center" style={{ background: "var(--accent)" }}>
+            <span className="text-xs font-bold" style={{ color: "var(--accent-text)" }}>R</span>
           </div>
-          <span className="text-sm font-semibold text-gray-200 tracking-tight">rag-app</span>
+          <span className="text-sm font-semibold tracking-tight" style={{ color: "var(--text)" }}>rag-app</span>
         </div>
+        <ThemeToggle className="text-[var(--text-muted)]" />
       </div>
 
       {/* Sessions header */}
       <div className="flex items-center justify-between px-4 py-3">
-        <span className="text-[11px] font-medium text-gray-500 uppercase tracking-wider">Sesiones</span>
-        <button
-          onClick={onNew}
-          className="text-[11px] bg-[#c8ff00]/10 hover:bg-[#c8ff00]/20 text-[#c8ff00] px-2.5 py-1 rounded-md transition font-medium"
-        >
+        <span className="text-[11px] font-medium uppercase tracking-wider" style={{ color: "var(--text-muted)" }}>Sesiones</span>
+        <button onClick={onNew}
+          className="text-[11px] px-2.5 py-1 rounded-md transition font-medium"
+          style={{ background: "var(--accent-subtle)", color: "var(--accent)" }}>
           + Nuevo
         </button>
       </div>
@@ -37,23 +38,16 @@ export default function Sidebar({ sessions, currentSessionId, onSelect, onNew, o
       {/* Sessions list */}
       <ul className="flex-1 overflow-y-auto px-2 space-y-0.5">
         {sessions.map((s) => (
-          <li
-            key={s.id}
-            onClick={() => onSelect(s.id)}
-            className={`group flex items-center justify-between px-3 py-2.5 rounded-lg cursor-pointer text-[13px] transition ${
-              s.id === currentSessionId
-                ? "bg-[#c8ff00]/10 text-[#c8ff00]"
-                : "text-gray-400 hover:bg-[#151b23] hover:text-gray-200"
-            }`}
-          >
+          <li key={s.id} onClick={() => onSelect(s.id)}
+            className="group flex items-center justify-between px-3 py-2.5 rounded-lg cursor-pointer text-[13px] transition"
+            style={{
+              background: s.id === currentSessionId ? "var(--accent-subtle)" : "transparent",
+              color: s.id === currentSessionId ? "var(--accent)" : "var(--text-secondary)",
+            }}>
             <span className="truncate flex-1">{s.title}</span>
-            <button
-              onClick={(e) => {
-                e.stopPropagation();
-                onDelete(s.id);
-              }}
-              className="opacity-0 group-hover:opacity-100 text-gray-600 hover:text-red-400 ml-2 transition"
-            >
+            <button onClick={(e) => { e.stopPropagation(); onDelete(s.id); }}
+              className="opacity-0 group-hover:opacity-100 ml-2 transition"
+              style={{ color: "var(--text-muted)" }}>
               <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
               </svg>
@@ -61,9 +55,7 @@ export default function Sidebar({ sessions, currentSessionId, onSelect, onNew, o
           </li>
         ))}
         {sessions.length === 0 && (
-          <li className="text-gray-600 text-xs text-center py-10">
-            Sin sesiones
-          </li>
+          <li className="text-xs text-center py-10" style={{ color: "var(--text-muted)" }}>Sin sesiones</li>
         )}
       </ul>
     </aside>

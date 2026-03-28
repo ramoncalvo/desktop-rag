@@ -15,19 +15,12 @@ export default function DocumentViewer({ fileId, page: initialPage }: Props) {
   const [files, setFiles] = useState<IndexedFile[]>([]);
   const [selectedFileId, setSelectedFileId] = useState<string | null>(fileId);
   const [loading, setLoading] = useState(false);
-  const [fileType, setFileType] = useState<string>("");
+  const [fileType, setFileType] = useState("");
   const [title, setTitle] = useState("");
-
-  // Text/transcript state
   const [textContent, setTextContent] = useState<TextContent | null>(null);
 
-  useEffect(() => {
-    loadFiles();
-  }, []);
-
-  useEffect(() => {
-    if (fileId) setSelectedFileId(fileId);
-  }, [fileId]);
+  useEffect(() => { loadFiles(); }, []);
+  useEffect(() => { if (fileId) setSelectedFileId(fileId); }, [fileId]);
 
   useEffect(() => {
     if (selectedFileId) {
@@ -35,136 +28,85 @@ export default function DocumentViewer({ fileId, page: initialPage }: Props) {
       if (file) {
         setFileType(file.file_type);
         setTitle(file.title || file.file_name);
-
-        if (file.file_type !== "pdf") {
-          loadTextContent(selectedFileId);
-        } else {
-          setTextContent(null);
-          setLoading(false);
-        }
+        if (file.file_type !== "pdf") { loadTextContent(selectedFileId); }
+        else { setTextContent(null); setLoading(false); }
       }
-    } else {
-      setFileType("");
-      setTextContent(null);
-      setTitle("");
-    }
+    } else { setFileType(""); setTextContent(null); setTitle(""); }
   }, [selectedFileId, files]);
 
-  async function loadFiles() {
-    try {
-      const f = await api.files.list();
-      setFiles(f);
-    } catch {}
-  }
+  async function loadFiles() { try { setFiles(await api.files.list()); } catch {} }
 
   async function loadTextContent(fid: string) {
     setLoading(true);
-    try {
-      const data = await api.files.content(fid);
-      if ("segments" in data) {
-        setTextContent(data as TextContent);
-      }
-    } catch {}
-    setLoading(false);
+    try { const d = await api.files.content(fid); if ("segments" in d) setTextContent(d as TextContent); }
+    catch {} setLoading(false);
   }
 
-  function handleFileSelect(fid: string) {
-    setSelectedFileId(fid);
-  }
-
-  // Build PDF URL with optional page anchor
   const pdfUrl = selectedFileId && fileType === "pdf"
-    ? `${API}/files/${selectedFileId}/raw#page=${initialPage || 1}`
-    : "";
+    ? `${API}/files/${selectedFileId}/raw#page=${initialPage || 1}` : "";
 
   return (
     <div className="flex flex-col h-full">
-      {/* Toolbar */}
-      <div className="flex items-center gap-3 px-5 py-3 border-b border-[#1e2a36] bg-[#0d1117] shrink-0">
-        <svg className="w-4 h-4 text-[#c8ff00]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <div className="flex items-center gap-3 px-5 py-3 shrink-0"
+        style={{ borderBottom: "1px solid var(--border)", background: "var(--bg)" }}>
+        <svg className="w-4 h-4" style={{ color: "var(--accent)" }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
         </svg>
-        <select
-          value={selectedFileId || ""}
-          onChange={(e) => handleFileSelect(e.target.value)}
-          className="flex-1 bg-[#151b23] text-gray-200 border border-[#1e2a36] rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-[#c8ff00]/40 transition max-w-md"
-        >
+        <select value={selectedFileId || ""} onChange={(e) => setSelectedFileId(e.target.value)}
+          className="flex-1 rounded-lg px-3 py-2 text-sm focus:outline-none transition max-w-md"
+          style={{ background: "var(--bg-secondary)", color: "var(--text)", border: "1px solid var(--border)" }}>
           <option value="">Selecciona un documento...</option>
-          {files.map((f) => (
-            <option key={f.id} value={f.id}>
-              {f.title || f.file_name} ({f.file_type})
-            </option>
-          ))}
+          {files.map((f) => <option key={f.id} value={f.id}>{f.title || f.file_name} ({f.file_type})</option>)}
         </select>
-
-        {title && (
-          <span className="text-[11px] bg-[#c8ff00]/10 text-[#c8ff00] px-2.5 py-1 rounded-md font-medium">
-            {fileType.toUpperCase()}
-          </span>
-        )}
+        {title && <span className="text-[11px] px-2.5 py-1 rounded-md font-medium"
+          style={{ background: "var(--accent-subtle)", color: "var(--accent)" }}>{fileType.toUpperCase()}</span>}
       </div>
 
-      {/* Content */}
       <div className="flex-1 overflow-hidden">
         {!selectedFileId && (
           <div className="flex flex-col items-center justify-center h-full gap-3">
-            <svg className="w-12 h-12 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg className="w-12 h-12" style={{ color: "var(--border)" }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
             </svg>
-            <p className="text-gray-600 text-sm">Selecciona un documento para ver su contenido</p>
+            <p className="text-sm" style={{ color: "var(--text-muted)" }}>Selecciona un documento para ver su contenido</p>
           </div>
         )}
 
-        {/* PDF: render original in iframe */}
         {selectedFileId && fileType === "pdf" && (
-          <iframe
-            src={pdfUrl}
-            className="w-full h-full border-none bg-[#151b23]"
-            title={title}
-          />
+          <object data={pdfUrl} type="application/pdf" className="w-full h-full">
+            <p className="p-8 text-center" style={{ color: "var(--text-muted)" }}>
+              Tu navegador no soporta visualizar PDFs.{" "}
+              <a href={pdfUrl} target="_blank" rel="noopener noreferrer" style={{ color: "var(--accent)" }}>Descargar PDF</a>
+            </p>
+          </object>
         )}
 
-        {/* Video transcript */}
         {selectedFileId && fileType !== "pdf" && !loading && textContent && (
           <div className="overflow-y-auto h-full p-6">
-            <div className="max-w-3xl mx-auto">
-              <div className="bg-[#151b23] border border-[#1e2a36] rounded-xl p-6">
-                <div className="flex items-center justify-between mb-4">
-                  <h3 className="text-xs text-gray-500 uppercase tracking-wider font-medium">
-                    {textContent.title}
-                  </h3>
-                  <span className="text-[11px] bg-[#c8ff00]/10 text-[#c8ff00] px-2 py-0.5 rounded font-medium">
-                    {textContent.file_type.toUpperCase()}
-                  </span>
-                </div>
-                <div className="space-y-4">
-                  {textContent.segments.map((seg, i) => (
-                    <div key={i} className="border-l-2 border-[#1e2a36] pl-4 hover:border-[#c8ff00]/40 transition">
-                      <div className="flex items-center gap-2 mb-1">
-                        <span className="text-[11px] bg-[#1e2a36] text-[#c8ff00] px-2 py-0.5 rounded font-mono">
-                          {seg.start_ts}
-                        </span>
-                        <span className="text-[11px] text-gray-600">→ {seg.end_ts}</span>
-                      </div>
-                      <p className="text-sm text-gray-300 leading-relaxed">{seg.text}</p>
+            <div className="max-w-3xl mx-auto rounded-xl p-6" style={{ background: "var(--bg-secondary)", border: "1px solid var(--border)" }}>
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-xs uppercase tracking-wider font-medium" style={{ color: "var(--text-muted)" }}>{textContent.title}</h3>
+                <span className="text-[11px] px-2 py-0.5 rounded font-medium" style={{ background: "var(--accent-subtle)", color: "var(--accent)" }}>{textContent.file_type.toUpperCase()}</span>
+              </div>
+              <div className="space-y-4">
+                {textContent.segments.map((seg, i) => (
+                  <div key={i} className="pl-4 transition" style={{ borderLeft: "2px solid var(--border)" }}>
+                    <div className="flex items-center gap-2 mb-1">
+                      <span className="text-[11px] px-2 py-0.5 rounded font-mono" style={{ background: "var(--bg-tertiary)", color: "var(--accent)" }}>{seg.start_ts}</span>
+                      <span className="text-[11px]" style={{ color: "var(--text-muted)" }}>→ {seg.end_ts}</span>
                     </div>
-                  ))}
-                  {textContent.segments.length === 0 && (
-                    <p className="text-gray-600 text-sm italic">Sin contenido disponible</p>
-                  )}
-                </div>
+                    <p className="text-sm leading-relaxed" style={{ color: "var(--text)" }}>{seg.text}</p>
+                  </div>
+                ))}
               </div>
             </div>
           </div>
         )}
 
-        {/* Loading */}
         {selectedFileId && loading && (
           <div className="flex items-center justify-center h-full">
             <div className="flex gap-1">
-              <div className="w-2 h-2 bg-[#c8ff00] rounded-full animate-bounce" style={{ animationDelay: "0ms" }} />
-              <div className="w-2 h-2 bg-[#c8ff00] rounded-full animate-bounce" style={{ animationDelay: "150ms" }} />
-              <div className="w-2 h-2 bg-[#c8ff00] rounded-full animate-bounce" style={{ animationDelay: "300ms" }} />
+              {[0, 150, 300].map((d) => <div key={d} className="w-2 h-2 rounded-full animate-bounce" style={{ background: "var(--accent)", animationDelay: `${d}ms` }} />)}
             </div>
           </div>
         )}

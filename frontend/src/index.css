@@ -1,42 +1,72 @@
 @import "tailwindcss";
 
-@font-face {
-  font-family: 'Inter';
-  font-style: normal;
-  font-weight: 100 900;
-  font-display: swap;
-  src: url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+/* --- Dark theme (default) --- */
+.theme-dark {
+  --bg: #0d1117;
+  --bg-secondary: #151b23;
+  --bg-tertiary: #1e2a36;
+  --bg-hover: #242e3a;
+  --border: #1e2a36;
+  --text: #e0e0e0;
+  --text-secondary: #9ca3af;
+  --text-muted: #6b7280;
+  --accent: #c8ff00;
+  --accent-hover: #d4ff33;
+  --accent-text: #0d1117;
+  --accent-subtle: rgba(200, 255, 0, 0.1);
+  --accent-subtle-hover: rgba(200, 255, 0, 0.2);
+  --user-msg: #c8ff00;
+  --user-msg-text: #0d1117;
+  --assistant-msg: #151b23;
+  --assistant-msg-border: #1e2a36;
+  --danger: #ef5350;
+  --scrollbar: #2a3a4a;
+}
+
+/* --- Light theme --- */
+.theme-light {
+  --bg: #e8dcc8;
+  --bg-secondary: #f2ece0;
+  --bg-tertiary: #ded4c2;
+  --bg-hover: #d4c8b4;
+  --border: #c8bca8;
+  --text: #2a2438;
+  --text-secondary: #5a5468;
+  --text-muted: #8a8498;
+  --accent: #5c5a8a;
+  --accent-hover: #4a4878;
+  --accent-text: #ffffff;
+  --accent-subtle: rgba(92, 90, 138, 0.12);
+  --accent-subtle-hover: rgba(92, 90, 138, 0.22);
+  --user-msg: #5c5a8a;
+  --user-msg-text: #ffffff;
+  --assistant-msg: #f2ece0;
+  --assistant-msg-border: #c8bca8;
+  --danger: #c0392b;
+  --scrollbar: #c8bca8;
 }
 
 ::-webkit-scrollbar { width: 6px; }
 ::-webkit-scrollbar-track { background: transparent; }
-::-webkit-scrollbar-thumb { background: #2a3a4a; border-radius: 3px; }
-::-webkit-scrollbar-thumb:hover { background: #3a4a5a; }
+::-webkit-scrollbar-thumb { background: var(--scrollbar); border-radius: 3px; }
 
-/* Halftone dot pattern */
 .halftone {
-  background-image: radial-gradient(circle, rgba(200, 255, 0, 0.08) 1px, transparent 1px);
+  background-image: radial-gradient(circle, color-mix(in srgb, var(--accent) 8%, transparent) 1px, transparent 1px);
   background-size: 8px 8px;
 }
 
-.halftone-dense {
-  background-image: radial-gradient(circle, rgba(200, 255, 0, 0.12) 1.2px, transparent 1.2px);
-  background-size: 6px 6px;
+.glow-accent {
+  box-shadow: 0 0 20px color-mix(in srgb, var(--accent) 15%, transparent),
+              0 0 60px color-mix(in srgb, var(--accent) 5%, transparent);
 }
 
-/* Glow effect for accent elements */
-.glow-lime {
-  box-shadow: 0 0 20px rgba(200, 255, 0, 0.15), 0 0 60px rgba(200, 255, 0, 0.05);
-}
-
-/* Animated gradient sweep */
 @keyframes sweep {
   0% { background-position: -200% 0; }
   100% { background-position: 200% 0; }
 }
 
 .sweep-loading {
-  background: linear-gradient(90deg, transparent, rgba(200, 255, 0, 0.3), transparent);
+  background: linear-gradient(90deg, transparent, color-mix(in srgb, var(--accent) 30%, transparent), transparent);
   background-size: 200% 100%;
   animation: sweep 1.5s ease-in-out infinite;
 }
