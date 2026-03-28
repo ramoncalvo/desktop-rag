@@ -1,79 +1,113 @@
-# RAG App
+# rag-app®
 
 App de escritorio para hacer preguntas sobre tus documentos (PDFs y videos) usando un LLM local con Ollama.
+
+## Ramas
+
+| Rama | UI | Descripcion |
+|------|-----|-------------|
+| `main` | Tkinter | Monolito Python, empaquetable con PyInstaller |
+| `tauri` | React + Tailwind + Tauri | UI moderna con shell Rust (12MB) + backend FastAPI |
+
+## Stack (rama tauri)
+
+| Capa | Tecnologia |
+|------|------------|
+| Shell | Tauri v2 (Rust) |
+| Frontend | React 19 + TypeScript + Vite |
+| Styling | Tailwind CSS v4 |
+| Backend | FastAPI (Python) |
+| LLM | Ollama (localhost:11434) |
+| Vector DB | ChromaDB embebido |
+| Base de datos | SQLite |
+| Embeddings | sentence-transformers (multilingual) |
+| Transcripcion | OpenAI Whisper |
+| PDFs | PyMuPDF |
 
 ## Requisitos
 
 - Python 3.11+
+- Node.js 18+
+- Rust (para compilar Tauri)
 - [Ollama](https://ollama.com) instalado
 - macOS / Linux / Windows
 
 ## Instalacion
 
 ```bash
-# Crear y activar entorno conda
+# Backend (Python)
 conda create -n desktop-rag python=3.11 -y
 conda activate desktop-rag
-
-# Instalar dependencias
 pip install -r requirements.txt
+
+# Frontend (Node)
+cd frontend
+npm install
 ```
 
-## Uso
+## Uso en desarrollo
 
 ```bash
+# Terminal 1: backend
 conda activate desktop-rag
-python app.py
+python backend/server.py
+
+# Terminal 2: frontend
+cd frontend && npm run dev
+
+# Terminal 3: Tauri shell
+CONDA_PREFIX=$CONDA_PREFIX cargo tauri dev
 ```
 
-Al iniciar por primera vez:
-1. La app verifica si Ollama esta instalado y corriendo
-2. Si no esta corriendo, lo arranca automaticamente
-3. Selecciona un modelo (llama3.1:8b por defecto) y se descarga si no lo tienes
-4. Una vez listo, se abre la ventana principal
+## Pantallas
 
-### Indexar documentos
+1. **Login** — pantalla de inicio (por ahora solo click "Entrar")
+2. **Setup** — verifica Ollama, descarga modelo seleccionado
+3. **Chat** — pregunta sobre documentos, respuestas con fuentes y timestamps
+4. **Fuentes** — seleccionar carpeta, escanear e indexar PDFs/videos
+5. **Settings** — modelo Ollama, modelos descargados, directorio de datos
+6. **Creditos** — autor, version, stack tecnologico
+
+## Indexar documentos
 
 1. Ve a la pestana **Fuentes**
 2. Selecciona una carpeta con PDFs o videos (mp4, mkv, avi, mov, etc.)
-3. Click en **Escanear e indexar nuevos** — solo procesa archivos nuevos
-4. Los PDFs se extraen con PyMuPDF, los videos se transcriben con Whisper
-
-### Chat
-
-1. Escribe tu pregunta en la pestana **Chat**
-2. La app busca contexto relevante en ChromaDB y genera una respuesta con Ollama
-3. Las fuentes consultadas se muestran debajo de cada respuesta
+3. Click en **Escanear e indexar** — solo procesa archivos nuevos
+4. PDFs se extraen con PyMuPDF, videos se transcriben con Whisper (timestamps precisos)
 
 ## Compilar
 
-### macOS (.app)
+### Frontend + Tauri (macOS)
 
 ```bash
 conda activate desktop-rag
-pip install pyinstaller
-pyinstaller --onedir --windowed --name "RAG App" --add-data "core:core" --add-data "ui:ui" app.py
+cd frontend && npm run build && cd ..
+cargo tauri build
 ```
 
-El resultado esta en `dist/RAG App.app`.
+Binario en `src-tauri/target/release/rag-app`.
 
-### Windows (.exe)
+### Frontend + Tauri (Windows)
 
 ```powershell
-conda activate desktop-rag
-pip install pyinstaller
-pyinstaller --onedir --windowed --name "RAG App" --add-data "core;core" --add-data "ui;ui" --icon=NONE app.py
+cd frontend; npm run build; cd ..
+cargo tauri build
 ```
 
-El resultado esta en `dist\RAG App\RAG App.exe`.
+### Rama main (Tkinter + PyInstaller)
 
-> En Windows el separador de `--add-data` es `;` en vez de `:`.
-> Requiere [Ollama para Windows](https://ollama.com/download/windows) instalado.
+```bash
+# macOS
+pyinstaller --onedir --windowed --name "RAG App" --add-data "core:core" --add-data "ui:ui" app.py
+
+# Windows (separador ; en lugar de :)
+pyinstaller --onedir --windowed --name "RAG App" --add-data "core;core" --add-data "ui;ui" --icon=NONE app.py
+```
 
 ## Datos
 
 Todo se guarda en `~/.rag-app/`:
-- `data.db` — SQLite (sesiones, mensajes, archivos indexados)
+- `data.db` — SQLite (sesiones, mensajes, archivos indexados, settings)
 - `chroma_db/` — vectores ChromaDB
 
 ## Modelos soportados
@@ -86,11 +120,10 @@ Todo se guarda en `~/.rag-app/`:
 | gemma2:9b | ~5.4 GB | Google |
 | qwen2.5:7b | ~4.4 GB | Bueno para multilingue |
 
-## Dependencias
+## Autor
 
-- `openai` — cliente para API de Ollama (compatible OpenAI)
-- `chromadb` — vector DB embebido
-- `sentence-transformers` — embeddings multilingue
-- `PyMuPDF` — extraccion de texto de PDFs
-- `openai-whisper` — transcripcion local de video/audio
-- `requests` — verificar estado de Ollama
+**Ramon Calvo** — [github.com/ramoncalvo](https://github.com/ramoncalvo)
+
+## Licencia
+
+©2025 rag-app — Todos los derechos reservados.
