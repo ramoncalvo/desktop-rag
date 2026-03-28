@@ -1,0 +1,54 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model IndexedFile {
+  id          String   @id @default(cuid())
+  filePath    String   @unique @map("file_path")
+  fileName    String   @map("file_name")
+  fileType    String   @map("file_type")
+  fileHash    String   @map("file_hash")
+  title       String?
+  chunkCount  Int      @default(0) @map("chunk_count")
+  pageCount   Int      @default(0) @map("page_count")
+  durationSec Int      @default(0) @map("duration_sec")
+  folderPath  String   @map("folder_path")
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  @@map("indexed_files")
+}
+
+model ChatSession {
+  id        String        @id @default(cuid())
+  title     String        @default("Nuevo Chat")
+  createdAt DateTime      @default(now()) @map("created_at")
+  updatedAt DateTime      @updatedAt @map("updated_at")
+  messages  ChatMessage[]
+
+  @@map("chat_sessions")
+}
+
+model ChatMessage {
+  id        String      @id @default(cuid())
+  sessionId String      @map("session_id")
+  role      String
+  content   String
+  sources   String?
+  actions   String?
+  createdAt DateTime    @default(now()) @map("created_at")
+  session   ChatSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+
+  @@map("chat_messages")
+}
+
+model AppSetting {
+  key   String @id
+  value String
+
+  @@map("app_settings")
+}
