@@ -7,6 +7,7 @@ import { SettingsService } from '../settings/settings.service';
 import { createHash } from 'crypto';
 import { readFileSync, readdirSync, statSync, existsSync } from 'fs';
 import { join, extname, basename } from 'path';
+import { homedir } from 'os';
 
 const PDF_EXTENSIONS = new Set(['.pdf']);
 const VIDEO_EXTENSIONS = new Set(['.mp4', '.mkv', '.avi', '.mov', '.webm', '.m4a', '.mp3', '.wav', '.flac', '.ogg']);
@@ -49,6 +50,7 @@ export class FilesService {
         }
       } catch (e: any) {
         console.error(`Error indexing ${basename(filePath)}: ${e.message}`);
+        console.error(e.stack);
       }
     }
 
@@ -65,35 +67,30 @@ export class FilesService {
     if (!file || !existsSync(file.filePath)) return null;
 
     if (file.fileType === 'pdf') {
-      const pdfParse = (await import('pdf-parse')) as any;
-      const buffer = readFileSync(file.filePath);
-      const pdf = await pdfParse(buffer);
-
-      if (page) {
-        // Return text for specific page (approximate — pdf-parse doesn't split well by page)
-        return {
-          file_id: id,
-          title: file.title,
-          file_type: 'pdf',
-          total_pages: pdf.numpages,
-          page,
-          blocks: [{ text: pdf.text, y: 0, x: 0 }],
-        };
-      }
-      return {
-        file_id: id,
-        title: file.title,
-        file_type: 'pdf',
-        total_pages: pdf.numpages,
-        pages: Array.from({ length: pdf.numpages }, (_, i) => ({
-          page: i + 1,
-          preview: '',
-          char_count: Math.floor(pdf.text.length / pdf.numpages),
-        })),
-      };
+      // Use Python/PyMuPDF for PDF content extraction
+      const result = this.runPython(`
+import fitz, json, sys
+doc = fitz.open('${file.filePath.replace(/'/g, "\\'")}')
+total = len(doc)
+page_num = ${page || 0}
+if page_num > 0:
+    p = doc[page_num - 1]
+    blocks = [{"text": b[4].strip(), "y": round(b[1],1), "x": round(b[0],1)} for b in p.get_text("blocks") if b[6]==0 and b[4].strip()]
+    print(json.dumps({"total_pages": total, "page": page_num, "blocks": blocks}))
+else:
+    pages = []
+    for i in range(total):
+        t = doc[i].get_text().strip()
+        pages.append({"page": i+1, "preview": t[:200], "char_count": len(t)})
+    print(json.dumps({"total_pages": total, "pages": pages}))
+doc.close()
+`);
+      if (!result) return null;
+      const data = JSON.parse(result);
+      return { file_id: id, title: file.title, file_type: 'pdf', ...data };
     }
 
-    // Video/audio: return chunks from ChromaDB
+    // Video/audio: return chunks from vector store
     const { documents, metadatas } = await this.rag.getFileChunks(id);
     const segments = documents
       .map((text, i) => ({ text, ...metadatas[i] }))
@@ -130,14 +127,68 @@ export class FilesService {
     return hash.digest('hex').substring(0, 16);
   }
 
-  private async indexPdf(filePath: string, folderPath: string) {
-    const pdfParse = (await import('pdf-parse')) as any;
-    const buffer = readFileSync(filePath);
-    const pdf = await pdfParse(buffer);
-    if (!pdf.text.trim()) return null;
+  private getPythonCmd(): string {
+    const condaPython = join(homedir(), 'miniconda3', 'envs', 'desktop-rag', 'bin', 'python');
+    return existsSync(condaPython) ? condaPython : 'python3';
+  }
 
-    const title = pdf.info?.Title || basename(filePath, extname(filePath));
-    const chunks = this.chunkText(pdf.text, pdf.numpages);
+  private runPython(script: string): string | null {
+    const { execFileSync } = require('child_process');
+    try {
+      const output = execFileSync(this.getPythonCmd(), ['-c', script], {
+        maxBuffer: 50 * 1024 * 1024,
+        timeout: 600000,
+        stdio: ['pipe', 'pipe', 'pipe'],
+      });
+      // Get only the last line (the JSON output), ignore tqdm/warnings on stderr
+      const lines = output.toString().trim().split('\n');
+      return lines[lines.length - 1];
+    } catch (e: any) {
+      console.error(`Python error: ${e.message}`);
+      if (e.stderr) console.error(`Python stderr: ${e.stderr.toString().slice(0, 500)}`);
+      return null;
+    }
+  }
+
+  private async indexPdf(filePath: string, folderPath: string) {
+    const safePath = filePath.replace(/'/g, "\\'");
+    const result = this.runPython(`
+import fitz, json
+doc = fitz.open('${safePath}')
+total = len(doc)
+meta = doc.metadata
+title = (meta.get("title","").strip() if meta else "") or ""
+if not title:
+    page = doc[0]
+    for b in page.get_text("blocks"):
+        if b[6]==0 and b[4].strip() and len(b[4].strip())<200:
+            title = b[4].strip().split("\\n")[0]; break
+if not title: title = "${basename(filePath, extname(filePath))}"
+# Extract chunks
+blocks = []
+for i in range(total):
+    page = doc[i]
+    ph = round(page.rect.height,1)
+    for b in page.get_text("blocks"):
+        if b[6]==0 and b[4].strip() and len(b[4].strip())>2:
+            blocks.append({"page":i+1,"y":round(b[1],1),"text":b[4].strip(),"ph":ph})
+doc.close()
+# Chunk
+chunks=[]
+ct=[]; cw=0; cp=None; cy=None; cph=None
+for bl in blocks:
+    if cp is None: cp=bl["page"]; cy=bl["y"]; cph=bl["ph"]
+    ct.append(bl["text"]); cw+=len(bl["text"].split())
+    if cw>=150:
+        chunks.append({"text":"\\n".join(ct),"page":cp,"y_position":cy,"page_height":cph,"source_type":"pdf"})
+        ct=ct[-2:]; cw=sum(len(t.split()) for t in ct); cp=bl["page"]; cy=bl["y"]; cph=bl["ph"]
+if ct: chunks.append({"text":"\\n".join(ct),"page":cp,"y_position":cy,"page_height":cph,"source_type":"pdf"})
+print(json.dumps({"title":title,"pages":total,"chunks":chunks}))
+`);
+    if (!result) return null;
+
+    const data = JSON.parse(result);
+    if (!data.chunks.length) return null;
 
     const file = await this.prisma.indexedFile.create({
       data: {
@@ -145,34 +196,29 @@ export class FilesService {
         fileName: basename(filePath),
         fileType: 'pdf',
         fileHash: this.fileHash(filePath),
-        title,
-        chunkCount: chunks.length,
-        pageCount: pdf.numpages,
+        title: data.title,
+        chunkCount: data.chunks.length,
+        pageCount: data.pages,
         durationSec: 0,
         folderPath,
       },
     });
 
-    await this.rag.indexChunks(file.id, filePath, title, chunks);
-    return { file_id: file.id, title, type: 'pdf', chunks: chunks.length };
+    await this.rag.indexChunks(file.id, filePath, data.title, data.chunks);
+    return { file_id: file.id, title: data.title, type: 'pdf', chunks: data.chunks.length };
   }
 
   private async indexVideo(filePath: string, folderPath: string) {
-    // Use whisper via Python subprocess for transcription
-    const { execSync } = await import('child_process');
+    const safePath = filePath.replace(/'/g, "\\'");
+    const output = this.runPython(
+      `import json, whisper; model = whisper.load_model('base'); r = model.transcribe('${safePath}', language=None, verbose=False); print(json.dumps({'text': r['text'], 'segments': [{'text': s['text'], 'start': s['start'], 'end': s['end']} for s in r['segments']]}))`
+    );
+    if (!output) return null;
+
     let result: any;
     try {
-      const output = execSync(
-        `python -c "
-import json, whisper
-model = whisper.load_model('base')
-r = model.transcribe('${filePath.replace(/'/g, "\\'")}', language=None, verbose=False)
-print(json.dumps({'text': r['text'], 'segments': [{'text': s['text'], 'start': s['start'], 'end': s['end']} for s in r['segments']]}))"`,
-        { maxBuffer: 50 * 1024 * 1024, timeout: 600000 },
-      );
-      result = JSON.parse(output.toString());
-    } catch (e: any) {
-      console.error(`Whisper failed for ${basename(filePath)}: ${e.message}`);
+      result = JSON.parse(output);
+    } catch {
       return null;
     }
 
