@@ -21,6 +21,13 @@
   --assistant-msg-border: #1e2a36;
   --danger: #ef5350;
   --scrollbar: #2a3a4a;
+  /* Chat tags */
+  --tag-bg: rgba(200, 255, 0, 0.1);
+  --tag-text: #c8ff00;
+  --tag-border: transparent;
+  /* Thinking / empty */
+  --dot-color: #c8ff00;
+  --empty-icon: #1e2a36;
   /* Structural areas — same as bg in dark */
   --sidebar-bg: #0d1117;
   --sidebar-text: #e0e0e0;
@@ -31,15 +38,26 @@
   --chat-bg: #0d1117;
   --chat-input-bg: #151b23;
   --statusbar-bg: #0a0e14;
+  /* Chat input */
+  --input-bg: #1e2a36;
+  --input-border: #1e2a36;
+  --input-text: #e0e0e0;
+  --input-placeholder: #6b7280;
+  /* Buttons */
+  --send-bg: #c8ff00;
+  --send-text: #0d1117;
+  --cancel-bg: #1e2a36;
+  --cancel-text: #6b7280;
+  --cancel-border: #1e2a36;
 }
 
 /* --- Light theme --- */
 .theme-light {
   --bg: #e8dcc8;
-  --bg-secondary: #f2ece0;
+  --bg-secondary: #f5f0e8;
   --bg-tertiary: #ded4c2;
   --bg-hover: #d4c8b4;
-  --border: #c8bca8;
+  --border: #d0c4b0;
   --text: #2a2438;
   --text-secondary: #5a5468;
   --text-muted: #8a8498;
@@ -48,22 +66,40 @@
   --accent-text: #ffffff;
   --accent-subtle: rgba(255, 255, 255, 0.18);
   --accent-subtle-hover: rgba(255, 255, 255, 0.28);
-  --user-msg: #5c5a8a;
+  --user-msg: #6b68a0;
   --user-msg-text: #ffffff;
-  --assistant-msg: #f2ece0;
-  --assistant-msg-border: #c8bca8;
+  --assistant-msg: #ffffff;
+  --assistant-msg-border: #e0d8cc;
   --danger: #c0392b;
   --scrollbar: #c8bca8;
+  /* Chat sources + tags */
+  --tag-bg: #e8e2f0;
+  --tag-text: #5c5a8a;
+  --tag-border: #d0cce0;
+  /* Thinking / empty state */
+  --dot-color: #8a88b0;
+  --empty-icon: #c8c0d8;
   /* Structural areas — purple in light mode */
   --sidebar-bg: #4a4878;
   --sidebar-text: #ffffff;
-  --sidebar-text-muted: rgba(255, 255, 255, 0.5);
+  --sidebar-text-muted: rgba(255, 255, 255, 0.55);
   --sidebar-border: rgba(255, 255, 255, 0.12);
   --navbar-bg: #5c5a8a;
-  --navbar-border: rgba(255, 255, 255, 0.12);
-  --chat-bg: #f2ece0;
-  --chat-input-bg: #5c5a8a;
+  --navbar-border: rgba(255, 255, 255, 0.10);
+  --chat-bg: #f0e8d8;
+  --chat-input-bg: #4a4878;
   --statusbar-bg: #3e3c68;
+  /* Chat input field */
+  --input-bg: rgba(255, 255, 255, 0.12);
+  --input-border: rgba(255, 255, 255, 0.18);
+  --input-text: #ffffff;
+  --input-placeholder: rgba(255, 255, 255, 0.4);
+  /* Buttons in input area */
+  --send-bg: #c8ff00;
+  --send-text: #2a2438;
+  --cancel-bg: rgba(255, 255, 255, 0.1);
+  --cancel-text: rgba(255, 255, 255, 0.5);
+  --cancel-border: rgba(255, 255, 255, 0.15);
 }
 
 ::-webkit-scrollbar { width: 6px; }

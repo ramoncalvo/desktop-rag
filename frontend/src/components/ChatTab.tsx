@@ -68,11 +68,11 @@ export default function ChatTab({ sessionId, onSessionCreated, onTitleChanged, o
     });
     if (!tags.length) return null;
     return (
-      <div className="mt-3 pt-3 flex flex-wrap gap-1.5" style={{ borderTop: "1px solid var(--border)" }}>
+      <div className="mt-3 pt-3 flex flex-wrap gap-1.5" style={{ borderTop: "1px solid var(--assistant-msg-border)" }}>
         {tags.map((t) => (
           <button key={t.key} onClick={() => onOpenDocument?.(t.fileId, t.page)}
-            className="text-[11px] px-2 py-0.5 rounded font-medium transition cursor-pointer"
-            style={{ background: "var(--accent-subtle)", color: "var(--accent)" }}>
+            className="text-[11px] px-2.5 py-1 rounded-md font-medium transition cursor-pointer hover:opacity-80"
+            style={{ background: "var(--tag-bg)", color: "var(--tag-text)", border: "1px solid var(--tag-border)" }}>
             {t.label}
           </button>
         ))}
@@ -82,22 +82,23 @@ export default function ChatTab({ sessionId, onSessionCreated, onTitleChanged, o
 
   return (
     <div className="flex flex-col h-full">
+      {/* Messages */}
       <div className="flex-1 overflow-y-auto px-6 py-4 space-y-4">
         {messages.length === 0 && !sending && (
           <div className="flex flex-col items-center justify-center h-full gap-3">
-            <div className="w-12 h-12 rounded-xl flex items-center justify-center" style={{ background: "var(--accent-subtle)" }}>
-              <span className="text-lg font-bold" style={{ color: "var(--accent)" }}>R</span>
+            <div className="w-14 h-14 rounded-2xl flex items-center justify-center" style={{ background: "var(--tag-bg)" }}>
+              <span className="text-xl font-bold" style={{ color: "var(--tag-text)" }}>R</span>
             </div>
             <p className="text-sm" style={{ color: "var(--text-muted)" }}>Escribe una pregunta para empezar</p>
           </div>
         )}
 
         {messages.map((msg, i) => (
-          <div key={msg.id || i} className={`max-w-[85%] ${msg.role === "user" ? "ml-auto" : "mr-auto"}`}>
+          <div key={msg.id || i} className={`max-w-[80%] ${msg.role === "user" ? "ml-auto" : "mr-auto"}`}>
             <div className="px-4 py-3 text-sm leading-relaxed"
               style={msg.role === "user"
-                ? { background: "var(--user-msg)", color: "var(--user-msg-text)", borderRadius: "16px 16px 4px 16px", fontWeight: 500 }
-                : { background: "var(--assistant-msg)", color: "var(--text)", borderRadius: "16px 16px 16px 4px", border: "1px solid var(--assistant-msg-border)" }}>
+                ? { background: "var(--user-msg)", color: "var(--user-msg-text)", borderRadius: "18px 18px 4px 18px", fontWeight: 500 }
+                : { background: "var(--assistant-msg)", color: "var(--text)", borderRadius: "18px 18px 18px 4px", border: "1px solid var(--assistant-msg-border)" }}>
               <div className="whitespace-pre-wrap">{msg.content}</div>
               {msg.role === "assistant" && renderSources(parseSources(msg.sources))}
             </div>
@@ -105,10 +106,10 @@ export default function ChatTab({ sessionId, onSessionCreated, onTitleChanged, o
         ))}
 
         {sending && (
-          <div className="mr-auto flex items-center gap-2 py-2">
+          <div className="mr-auto flex items-center gap-2.5 py-2 px-1">
             <div className="flex gap-1">
               {[0, 150, 300].map((d) => (
-                <div key={d} className="w-1.5 h-1.5 rounded-full animate-bounce" style={{ background: "var(--accent)", animationDelay: `${d}ms` }} />
+                <div key={d} className="w-2 h-2 rounded-full animate-bounce" style={{ background: "var(--dot-color)", animationDelay: `${d}ms` }} />
               ))}
             </div>
             <span className="text-sm" style={{ color: "var(--text-muted)" }}>Pensando...</span>
@@ -117,18 +118,19 @@ export default function ChatTab({ sessionId, onSessionCreated, onTitleChanged, o
         <div ref={messagesEnd} />
       </div>
 
-      <div className="px-6 py-4 flex gap-3 shrink-0" style={{ borderTop: "1px solid var(--navbar-border)", background: "var(--chat-input-bg)" }}>
+      {/* Input area */}
+      <div className="px-5 py-4 flex gap-3 shrink-0" style={{ background: "var(--chat-input-bg)", borderTop: "1px solid var(--navbar-border)" }}>
         <textarea ref={textareaRef} value={input} onChange={(e) => setInput(e.target.value)} onKeyDown={handleKeyDown}
           placeholder="Escribe tu pregunta..." rows={3}
-          className="flex-1 rounded-xl px-4 py-3 text-sm resize-none focus:outline-none transition placeholder:opacity-50"
-          style={{ background: "var(--accent-subtle)", color: "var(--sidebar-text)", border: "1px solid var(--sidebar-border)" }} />
+          className="flex-1 rounded-xl px-4 py-3 text-sm resize-none focus:outline-none transition"
+          style={{ background: "var(--input-bg)", color: "var(--input-text)", border: "1px solid var(--input-border)" }} />
         <div className="flex flex-col gap-2">
           <button onClick={handleSend} disabled={sending || !input.trim()}
-            className="px-5 py-2 rounded-lg text-sm font-semibold transition disabled:opacity-30 disabled:cursor-not-allowed"
-            style={{ background: "var(--accent)", color: "var(--accent-text)" }}>Enviar</button>
+            className="px-5 py-2.5 rounded-lg text-sm font-semibold transition disabled:opacity-30 disabled:cursor-not-allowed"
+            style={{ background: "var(--send-bg)", color: "var(--send-text)" }}>Enviar</button>
           <button disabled={!sending}
-            className="px-5 py-2 rounded-lg text-sm transition disabled:opacity-30"
-            style={{ background: "var(--bg-tertiary)", color: "var(--text-muted)", border: "1px solid var(--border)" }}>Cancelar</button>
+            className="px-5 py-2.5 rounded-lg text-sm transition disabled:opacity-30"
+            style={{ background: "var(--cancel-bg)", color: "var(--cancel-text)", border: "1px solid var(--cancel-border)" }}>Cancelar</button>
         </div>
       </div>
     </div>

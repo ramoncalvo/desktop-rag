@@ -2,8 +2,6 @@
 
 import { useEffect, useState } from "react";
 import { api } from "../lib/api";
-import { useThemeStore } from "../store/theme";
-
 const MODELS = ["llama3.1:8b", "llama3.2:3b", "mistral:7b", "gemma2:9b", "qwen2.5:7b"];
 
 export default function SettingsTab() {
@@ -12,8 +10,6 @@ export default function SettingsTab() {
   const [dbPath] = useState("~/.rag-app");
   const [saving, setSaving] = useState(false);
   const [status, setStatus] = useState("");
-  const { theme, set: setTheme } = useThemeStore();
-
   useEffect(() => { loadSettings(); }, []);
 
   async function loadSettings() {
@@ -33,30 +29,6 @@ export default function SettingsTab() {
 
   return (
     <div className="p-6 overflow-y-auto h-full space-y-5">
-      {/* Theme */}
-      <div className="rounded-xl p-5" style={{ background: "var(--bg-secondary)", border: "1px solid var(--border)" }}>
-        <h3 className="text-sm font-semibold mb-4 flex items-center gap-2" style={{ color: "var(--text)" }}>
-          <svg className="w-4 h-4" style={{ color: "var(--accent)" }} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 21a4 4 0 01-4-4V5a2 2 0 012-2h4a2 2 0 012 2v12a4 4 0 01-4 4zm0 0h12a2 2 0 002-2v-4a2 2 0 00-2-2h-2.343M11 7.343l1.657-1.657a2 2 0 012.828 0l2.829 2.829a2 2 0 010 2.828l-8.486 8.485M7 17h.01" /></svg>
-          Apariencia
-        </h3>
-        <div className="flex gap-3">
-          <button onClick={() => setTheme("dark")}
-            className="flex-1 py-3 rounded-lg text-sm font-medium transition"
-            style={theme === "dark"
-              ? { background: "var(--accent)", color: "var(--accent-text)" }
-              : { background: "var(--bg-tertiary)", color: "var(--text-secondary)", border: "1px solid var(--border)" }}>
-            Oscuro
-          </button>
-          <button onClick={() => setTheme("light")}
-            className="flex-1 py-3 rounded-lg text-sm font-medium transition"
-            style={theme === "light"
-              ? { background: "var(--accent)", color: "var(--accent-text)" }
-              : { background: "var(--bg-tertiary)", color: "var(--text-secondary)", border: "1px solid var(--border)" }}>
-            Claro
-          </button>
-        </div>
-      </div>
-
       {/* Ollama */}
       <div className="rounded-xl p-5" style={{ background: "var(--bg-secondary)", border: "1px solid var(--border)" }}>
         <h3 className="text-sm font-semibold mb-4 flex items-center gap-2" style={{ color: "var(--text)" }}>
