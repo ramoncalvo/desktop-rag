@@ -2,7 +2,9 @@
 
 import { Controller, Get, Post, Delete, Param, Body, Query, Res, HttpException } from '@nestjs/common';
 import { FilesService } from './files.service';
-import { createReadStream, statSync, existsSync } from 'fs';
+import { createReadStream, readdirSync, statSync, existsSync } from 'fs';
+import { join } from 'path';
+import { homedir } from 'os';
 import { Req } from '@nestjs/common';
 
 const MEDIA_TYPES: Record<string, string> = {
@@ -31,6 +33,34 @@ export class FilesController {
   @Post()
   async index(@Body() body: { folder_path: string }) {
     return this.files.indexFolder(body.folder_path);
+  }
+
+  @Get('browse')
+  async browse(@Query('path') dirPath?: string) {
+    const targetPath = dirPath || homedir();
+
+    if (!existsSync(targetPath)) {
+      throw new HttpException('Directorio no encontrado', 404);
+    }
+
+    try {
+      const entries = readdirSync(targetPath, { withFileTypes: true });
+      const dirs = entries
+        .filter((e) => e.isDirectory() && !e.name.startsWith('.'))
+        .map((e) => ({
+          name: e.name,
+          path: join(targetPath, e.name),
+        }))
+        .sort((a, b) => a.name.localeCompare(b.name));
+
+      // Get parent directory
+      const parent = join(targetPath, '..');
+      const parentPath = parent !== targetPath ? parent : null;
+
+      return { current: targetPath, parent: parentPath, directories: dirs };
+    } catch {
+      throw new HttpException('No se pudo leer el directorio', 403);
+    }
   }
 
   @Delete(':id')

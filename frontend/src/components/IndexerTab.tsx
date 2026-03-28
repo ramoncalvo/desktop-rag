@@ -3,27 +3,27 @@
 import { useEffect, useState } from "react";
 import { api } from "../lib/api";
 import type { IndexedFile } from "../lib/api";
+import DirectoryPicker from "./DirectoryPicker";
 
 export default function IndexerTab() {
   const [folder, setFolder] = useState("");
   const [files, setFiles] = useState<IndexedFile[]>([]);
   const [status, setStatus] = useState("");
   const [indexing, setIndexing] = useState(false);
+  const [showPicker, setShowPicker] = useState(false);
 
   useEffect(() => { loadFiles(); loadFolder(); }, []);
 
   async function loadFiles() { try { setFiles(await api.files.list()); } catch {} }
   async function loadFolder() { try { const s = await api.settings.get("index_folder"); if (s.value) setFolder(s.value); } catch {} }
 
-  async function handleBrowse() {
-    // Try Tauri dialog first (native OS dialog)
-    try {
-      const { open } = await import("@tauri-apps/plugin-dialog");
-      const selected = await open({ directory: true });
-      if (selected) { setFolder(selected as string); return; }
-    } catch {
-      // In browser mode, the input is editable — user can type/paste the path
-    }
+  function handleBrowse() {
+    setShowPicker(true);
+  }
+
+  function handlePickerSelect(path: string) {
+    setFolder(path);
+    setShowPicker(false);
   }
 
   async function handleIndex() {
@@ -96,6 +96,13 @@ export default function IndexerTab() {
           </table>
         )}
       </div>
+
+      {showPicker && (
+        <DirectoryPicker
+          onSelect={handlePickerSelect}
+          onClose={() => setShowPicker(false)}
+        />
+      )}
     </div>
   );
 }
