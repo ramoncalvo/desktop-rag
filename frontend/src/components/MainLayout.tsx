@@ -8,11 +8,13 @@ import ChatTab from "./ChatTab";
 import DocumentViewer from "./DocumentViewer";
 import IndexerTab from "./IndexerTab";
 import SettingsTab from "./SettingsTab";
+import ProfileTab from "./ProfileTab";
+import BillingTab from "./BillingTab";
 import CreditsTab from "./CreditsTab";
 
-type Tab = "chat" | "viewer" | "indexer" | "settings" | "credits";
+type Tab = "chat" | "viewer" | "indexer" | "settings" | "profile" | "billing" | "credits";
 
-export default function MainLayout({ model }: { model: string }) {
+export default function MainLayout({ model, onLogout }: { model: string; onLogout: () => void }) {
   const [sessions, setSessions] = useState<Session[]>([]);
   const [currentSessionId, setCurrentSessionId] = useState<string | null>(null);
   const [tab, setTab] = useState<Tab>("chat");
@@ -46,7 +48,8 @@ export default function MainLayout({ model }: { model: string }) {
   return (
     <div className="flex h-screen" style={{ background: "var(--bg)" }}>
       <Sidebar sessions={sessions} currentSessionId={currentSessionId}
-        onSelect={handleSelectSession} onNew={handleNewChat} onDelete={handleDeleteSession} />
+        onSelect={handleSelectSession} onNew={handleNewChat} onDelete={handleDeleteSession}
+        onNavigate={(t) => setTab(t as Tab)} onLogout={onLogout} />
 
       <div className="flex-1 flex flex-col overflow-hidden">
         <nav className="flex shrink-0" style={{ borderBottom: "1px solid var(--navbar-border)", background: "var(--navbar-bg)" }}>
@@ -69,6 +72,8 @@ export default function MainLayout({ model }: { model: string }) {
           {tab === "viewer" && <DocumentViewer fileId={viewerFileId} page={viewerPage} startTime={viewerStartTime} />}
           {tab === "indexer" && <IndexerTab />}
           {tab === "settings" && <SettingsTab />}
+          {tab === "profile" && <ProfileTab />}
+          {tab === "billing" && <BillingTab />}
           {tab === "credits" && <CreditsTab />}
         </div>
 

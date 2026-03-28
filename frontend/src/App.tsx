@@ -61,6 +61,11 @@ export default function App() {
     setScreen("main");
   }
 
+  function handleLogout() {
+    localStorage.removeItem("rag-app-logged-in");
+    setScreen("login");
+  }
+
   return (
     <div className={`theme-${theme}`}>
       {screen === "loading" && (
@@ -75,7 +80,7 @@ export default function App() {
       )}
       {screen === "login" && <LoginScreen onLogin={handleLogin} />}
       {screen === "setup" && <SetupScreen onReady={handleSetupReady} />}
-      {screen === "main" && <MainLayout model={model} />}
+      {screen === "main" && <MainLayout model={model} onLogout={handleLogout} />}
     </div>
   );
 }
