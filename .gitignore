@@ -6,3 +6,5 @@ build/
 *.spec
 *.egg-info/
 .env
+node_modules/
+src-tauri/target/
