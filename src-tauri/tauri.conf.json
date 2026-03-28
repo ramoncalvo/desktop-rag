@@ -1,10 +1,9 @@
 {
-  "$schema": "https://raw.githubusercontent.com/nicedoc/tauri/dev/crates/tauri-utils/schema.json",
   "productName": "RAG App",
   "version": "1.0.0",
   "identifier": "com.ramoncalvo.rag-app",
   "build": {
-    "frontendDist": "../src",
+    "frontendDist": "../frontend/dist",
     "devUrl": "http://localhost:1420",
     "beforeDevCommand": "",
     "beforeBuildCommand": ""
